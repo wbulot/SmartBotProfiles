@@ -9,27 +9,72 @@ namespace SmartBot.Plugins.API
 {
     public class bProfile : RemoteProfile
     {
+        //Init value for Card Draw
+        private int FriendCardDrawValue = 0;
+        private int EnemyCardDrawValue = 0;
 
-        private int MinionEnemyTauntValue = 2;
-        private int MinionEnemyWindfuryValue = 2;
-        private int MinionDivineShield = 2;
+        //Init value for heros
+        private int HeroEnemyHealthValue = 0;
+        private int HeroFriendHealthValue = 0;
 
-        private int FriendCardDrawValue = 2;
-        private int EnemyCardDrawValue = 2;
-
-        private int HeroEnemyHealthValue = 2;
-        private int HeroFriendHealthValue = 2;
-
-        private int MinionEnemyAttackValue = 3;
-        private int MinionEnemyHealthValue = 2;
-        private int MinionFriendAttackValue = 2;
-        private int MinionFriendHealthValue = 2;
+        //Init value for minion
+        private int MinionEnemyAttackValue = 0;
+        private int MinionEnemyHealthValue = 0;
+        private int MinionFriendAttackValue = 0;
+        private int MinionFriendHealthValue = 0;
 
         //GlobalValueModifier
         private int GlobalValueModifier = 0;
 
         public override float GetBoardValue(Board board)
         {
+
+            //Change base value according to the deck played and situation
+            if (myDeck.isPaladinSecret(board))
+            {
+                FriendCardDrawValue += 6;
+                EnemyCardDrawValue += 0;
+                HeroEnemyHealthValue += 3;
+                HeroFriendHealthValue += 1;
+                MinionEnemyAttackValue += 3;
+                MinionEnemyHealthValue += 2;
+                MinionFriendAttackValue += 3;
+                MinionFriendHealthValue += 2;
+                if (board.EnemyClass == Card.CClass.HUNTER)//Against hunter, save more health and little more control
+                {
+                    HeroEnemyHealthValue += 2;
+                    MinionEnemyAttackValue += 2;
+                }
+                else//Against other Hero than hunter
+                {
+                    if (board.TurnCount <= 4)//Little more control before turn 4
+                    {
+                        MinionEnemyAttackValue += 1;
+                    }
+                }
+            }
+            else if (myDeck.isMechWarrior(board))
+            {
+                FriendCardDrawValue += 5;
+                EnemyCardDrawValue += 6;
+                HeroEnemyHealthValue += 3;
+                HeroFriendHealthValue += 1;
+                MinionEnemyAttackValue += 3;
+                MinionEnemyHealthValue += 2;
+                MinionFriendAttackValue += 3;
+                MinionFriendHealthValue += 2;
+            }
+            else //Other deck not handle by this profile
+            {
+                FriendCardDrawValue += 2;
+                EnemyCardDrawValue += 2;
+                HeroEnemyHealthValue += 2;
+                HeroFriendHealthValue += 2;
+                MinionEnemyAttackValue += 2;
+                MinionEnemyHealthValue += 2;
+                MinionFriendAttackValue += 2;
+                MinionFriendHealthValue += 2;
+            }
             float value = 0;
 
             //Hero friend value
@@ -88,7 +133,16 @@ namespace SmartBot.Plugins.API
                 value += card.CurrentHealth * MinionFriendHealthValue + card.CurrentAtk * MinionFriendAttackValue;
 
                 if (card.IsFrozen)
-                    value -= 5;
+                    value -= 2 + card.CurrentAtk;
+
+                if (card.IsDivineShield)
+                    value += 2 + card.CurrentAtk;
+
+                if (card.IsStealth)
+                    value += 2 + card.CurrentAtk;
+
+                if (card.IsTargetable == false)
+                    value += 3;
 
                 //Tweak some minions Friend value
                 switch (card.Template.Id)
@@ -105,15 +159,23 @@ namespace SmartBot.Plugins.API
             {
                 //Taunt value
                 if (card.IsTaunt)
-                    value += MinionEnemyTauntValue;
+                    value += 2;
 
                 //Windfury value
                 if (card.IsWindfury)
-                    value += MinionEnemyWindfuryValue;
+                    value += 4;
 
-                //divine shield value
+                //Divine shield value
                 if (card.IsDivineShield)
-                    value += MinionDivineShield;
+                    value += 2 + card.CurrentAtk;
+
+                //Targetable Value
+                if (card.IsTargetable == false)
+                    value += 3;
+
+                //Frozen Value
+                if (card.IsFrozen)
+                    value += 2 + card.CurrentAtk;
 
                 value += card.CurrentHealth * MinionEnemyHealthValue + card.CurrentAtk * MinionEnemyAttackValue;
 
@@ -121,7 +183,6 @@ namespace SmartBot.Plugins.API
                 switch (card.Template.Id)
                 {
                     case Card.Cards.EX1_412://Raging Worgen
-
                         if (card.IsSilenced == false)
                         {
                             value += 10;
@@ -129,7 +190,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_565://Flametongue Totem
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -137,7 +197,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.BRM_002://Flamewaker
-
                         if (card.IsSilenced == false)
                         {
                             value += 10;
@@ -145,7 +204,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_402://Armorsmith
-
                         if (card.IsSilenced == false)
                         {
                             value += 10;
@@ -153,7 +211,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.GVG_006://Mechwarper
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -161,7 +218,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.FP1_005://Shade of Naxxramas
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -169,15 +225,13 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.FP1_013://Kel'Thuzad
-
                         if (card.IsSilenced == false)
                         {
-                            value += 5;
+                            value += 10;
                         }
                         break;
 
                     case Card.Cards.BRM_031://Chromaggus
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -185,7 +239,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_559://Archmage Antonidas
-
                         if (card.IsSilenced == false)
                         {
                             value += 10;
@@ -193,7 +246,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.GVG_021://Mal'Ganis
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -201,7 +253,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_608://Sorcerer's Apprentice
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -209,7 +260,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.NEW1_012://Mana Wyrm
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -217,7 +267,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_595://Cult Master
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -225,7 +274,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_170://Emperor Cobra
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -233,7 +281,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.BRM_028://Emperor Thaurissan
-
                         if (card.IsSilenced == false)
                         {
                             value += 10;
@@ -241,7 +288,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.GVG_100://Floating Watcher
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -249,7 +295,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.tt_004://Flesheating Ghoul
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -257,7 +302,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_604://Frothing Berserker
-
                         if (card.IsSilenced == false)
                         {
                             value += 20;
@@ -265,7 +309,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.BRM_019://Grim Patron
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -273,7 +316,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_084://Warsong Commander
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -281,7 +323,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_095://Gadgetzan Auctioneer
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -289,7 +330,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.NEW1_040://Hogger
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -297,7 +337,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.GVG_104://Hobgoblin
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -305,7 +344,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_614://Illidan Stormrage
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -313,7 +351,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.GVG_027://Iron Sensei
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -321,7 +358,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.GVG_094://Jeeves
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -329,7 +365,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.NEW1_019://Knife Juggler
-
                         if (card.IsSilenced == false)
                         {
                             value += 9;
@@ -337,7 +372,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_001://Lightwarden
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -345,7 +379,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_563://Malygos
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -353,7 +386,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.GVG_103://Micro Machine
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -361,7 +393,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_044://Questing Adventurer
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -369,7 +400,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.NEW1_020://Wild Pyromancer
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -377,7 +407,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.GVG_013://Cogmaster
-
                         if (card.IsSilenced == false)
                         {
                             value += 5;
@@ -385,7 +414,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.CS2_237://Starving Buzzard
-
                         if (card.IsSilenced == false)
                         {
                             value += 10;
@@ -393,7 +421,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.EX1_080://Secretkeeper
-
                         if (card.IsSilenced == false)
                         {
                             value += 7;
@@ -401,7 +428,6 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.GVG_002://Snowchugger
-
                         if (card.IsSilenced == false)
                         {
                             value += 10;
@@ -423,32 +449,406 @@ namespace SmartBot.Plugins.API
                         GlobalValueModifier += 10;
                     }
                     break;
+
+                case Card.Cards.CS2_188://Abusive Sergeant
+                    GlobalValueModifier -= 9;
+                    if (board.MinionEnemy.Count == 0) //Avoid play abusive if empty enemy board (use it for trade)
+                    {
+                        MinionCastGlobalValue -= 4;
+                    }
+                    break;
+
+                case Card.Cards.FP1_002://Haunted Creeper
+                    if (myDeck.isPaladinSecret(board))
+                    {
+                        if (board.Hand.Count(x => x.Template.Id == Card.Cards.NEW1_019) >= 1 && board.ManaAvailable <= 3)
+                        {
+                            GlobalValueModifier += 7;
+                        }
+                    }
+                    break;
+
+                case Card.Cards.CS2_203://Ironbeak Owl
+                    GlobalValueModifier -= 15;
+                    if (board.Hand.Count(x => x.Template.Id == Card.Cards.CS2_203) == 2)
+                    {
+                        GlobalValueModifier += 10;
+                    }
+
+                    if (board.EnemyClass == Card.CClass.HUNTER)//Inscrease value of owl against hunter
+                    {
+                        if (target != null && target.IsFriend == false)
+                        {
+                            GlobalValueModifier += 10;
+                        }
+
+                        if (target != null && target.Template.Id == Card.Cards.FP1_004) //Inscrease value of owl against mad scientitst
+                        {
+                            GlobalValueModifier += 3;
+                        }
+                    }
+
+                    if (target != null && target.Template.Id == Card.Cards.NEW1_021 && target.IsSilenced == false) //Inscrease value of owl against doomsayer
+                    {
+                        GlobalValueModifier += 110;
+                    }
+                    break;
+
+                case Card.Cards.AT_076://Murloc Knight
+                    GlobalValueModifier -= 5;
+                    break;
+
+                case Card.Cards.NEW1_019://Knife Juggler
+                    if (CanSurvive(minion, board) == false)
+                    {
+                        GlobalValueModifier -= 2;
+                    }
+                    break;
+
+                case Card.Cards.GVG_013://Cogmaster
+                    if (board.Hand.Count(x => x.Template.Id == Card.Cards.GVG_051) >= 1)
+                    {
+                        MinionCastGlobalValue += 3;
+                    }
+                    break;
+
+                case Card.Cards.GVG_102://Tinkertown Technician
+                    if (board.MinionFriend.Count(x => x.Race == Card.CRace.MECH) == 0)
+                    {
+                        MinionCastGlobalValue -= 4;
+                    }
+                    break;
+
+                case Card.Cards.GVG_055://Screwjank Clunker
+                    if (board.MinionFriend.Count(x => x.Race == Card.CRace.MECH) == 0)
+                    {
+                        MinionCastGlobalValue -= 5;
+                    }
+                    break;
+
+                case Card.Cards.GVG_085://Annoy-o-Tron
+                    if (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.GVG_013) >= 1)
+                    {
+                        MinionCastGlobalValue += 3;
+                    }
+                    break;
+
+                case Card.Cards.GVG_004://Goblin Blastmage
+                    if (board.MinionFriend.Count(x => x.Race == Card.CRace.MECH) == 0)
+                    {
+                        MinionCastGlobalValue -= 6;
+                    }
+                    break;
+
+                case Card.Cards.EX1_116://Leeroy Jenkins
+                    MinionCastGlobalValue -= 30;
+                    break;
+            }
+
+            foreach (Card card in board.MinionEnemy)
+            {
+                if (card.Template.Id == Card.Cards.NEW1_021 && card.IsSilenced == false)//Tweak Doomsayer
+                {
+                    GlobalValueModifier -= 100;
+                }
             }
         }
 
         public override void OnMinionDeath(Board board, Card minion)
         {
+            switch (minion.Template.Id)
+            {
+                case Card.Cards.FP1_004://Mad Scientist
+                    if (minion.IsFriend == false && minion.IsSilenced == false)
+                    {
+                        GlobalValueModifier -= 20;
+                    }
+                    break;
 
+                case Card.Cards.FP1_022://Voidcaller
+                    if (minion.IsFriend == false && minion.IsSilenced == false)
+                    {
+                        GlobalValueModifier -= 5;
+                    }
+                    if (minion.IsFriend == true && minion.IsSilenced == false)
+                    {
+                        GlobalValueModifier -= 5;
+                        if (board.Hand.Count(x => x.Race == Card.CRace.DEMON) == 1 && board.Hand.Count(x => x.Template.Id == Card.Cards.EX1_310) == 1) //Some tweak here for higher chance to proc doomguard
+                        {
+                            GlobalValueModifier += 5;
+                        }
+                    }
+                    break;
+
+                case Card.Cards.EX1_029://Leper Gnome
+                    if (minion.IsFriend == false && minion.IsSilenced == false)
+                    {
+                        GlobalValueModifier -= 6;
+                    }
+                    if (minion.IsFriend == true && minion.IsSilenced == false)
+                    {
+                        GlobalValueModifier -= 5;
+                    }
+                    break;
+
+                case Card.Cards.FP1_002://Haunted Creeper Friend
+                    if (minion.IsFriend == true && minion.IsSilenced == false)
+                    {
+                        GlobalValueModifier -= 5;
+                    }
+                    break;
+
+                case Card.Cards.GVG_096://Piloted Shredder
+                    if (minion.IsFriend == false && minion.IsSilenced == false)
+                    {
+                        GlobalValueModifier += 5;
+                    }
+                    break;
+
+                case Card.Cards.FP1_007://Nerubian Egg
+                    if (minion.IsFriend == true && minion.IsSilenced == false && minion.IsTaunt)
+                    {
+                        GlobalValueModifier -= 9;
+                    }
+                    break;
+
+                case Card.Cards.EX1_556://Harvest Golem
+                    if (minion.IsFriend == false && minion.IsSilenced == false)
+                    {
+                        GlobalValueModifier += 5;
+                    }
+                    break;
+
+                case Card.Cards.AT_123://Harvest Golem
+                    if (minion.IsFriend == false && minion.IsSilenced == false)
+                    {
+                        GlobalValueModifier += 13;
+                    }
+                    break;
+
+                case Card.Cards.NEW1_021://Doomsayer
+                    if (minion.IsFriend == false && minion.IsSilenced == false)
+                    {
+                        GlobalValueModifier += 1000;
+                    }
+                    break;
+
+
+            }
         }
 
         public override void OnCastSpell(Board board, Card spell, Card target)
         {
+            switch (spell.Template.Id)
+            {
+                case Card.Cards.EX1_349://Divine Favor
+                    if ((board.Hand.Count > board.EnemyCardCount))
+                    {
+                        SpellsCastGlobalValue -= 6;
+                    }
+                    break;
 
+                case Card.Cards.AT_073://Competitive Spirit
+                    if (board.MinionFriend.Count <= 1)
+                    {
+                        SpellsCastGlobalValue -= 5;
+                    }
+                    else
+                    {
+                        SpellsCastGlobalValue += 2;
+                    }
+                    break;
+
+                case Card.Cards.CS2_093://Consecration
+                    if (myDeck.isPaladinSecret(board))
+                    {
+                        SpellsCastGlobalValue -= 11;
+                    }
+                    break;
+
+                case Card.Cards.CS2_092://Blessing of Kings
+                    if (target.IsDivineShield && target.IsFriend == true)
+                    {
+                        SpellsCastGlobalValue += 1;
+                    }
+                    break;
+
+                case Card.Cards.EX1_379://Repentance
+                    if (board.TurnCount == 1)
+                    {
+                        SpellsCastGlobalValue -= 5;
+                    }
+                    break;
+
+                case Card.Cards.EX1_136://Redemption
+                    SpellsCastGlobalValue -= 1;
+                    break;
+
+                case Card.Cards.EX1_130://Noble Sacrifice
+                    if (board.MinionFriend.Count == 0)
+                    {
+                        SpellsCastGlobalValue -= 3;
+                    }
+                    break;
+
+                case Card.Cards.GVG_061://Muster for Battle
+                    SpellsCastGlobalValue -= 2;
+                    if (board.WeaponEnemy != null && board.WeaponEnemy.CurrentDurability <= 1 && board.WeaponEnemy.Template.Id == Card.Cards.FP1_021)
+                    {
+                        SpellsCastGlobalValue -= 8;
+                    }
+                    if (board.WeaponFriend != null && board.WeaponFriend.CurrentDurability >= 1 && board.WeaponFriend.Template.Id == Card.Cards.CS2_097)
+                    {
+                        SpellsCastGlobalValue -= 5;
+                    }
+                    if (board.WeaponFriend != null && board.WeaponFriend.CurrentDurability > 1 && board.WeaponFriend.Template.Id == Card.Cards.EX1_383t)
+                    {
+                        SpellsCastGlobalValue -= 13;
+                    }
+                    break;
+
+                case Card.Cards.CS2_105://Heroic Strike
+                    SpellsCastGlobalValue -= 13;
+                    break;
+
+                case Card.Cards.EX1_277://Arcane Missiles
+                    SpellsCastGlobalValue -= 3;
+                    break;
+
+                case Card.Cards.EX1_408://Mortal Strike
+                    SpellsCastGlobalValue -= 16;
+                    if (target != board.HeroEnemy || target.IsTaunt == false)
+                    {
+                        SpellsCastGlobalValue -= 5;
+                    }
+                    break;
+
+                case Card.Cards.GVG_003://Unstable Portal
+                    SpellsCastGlobalValue += 5;
+                    break;
+
+                case Card.Cards.CS2_029://Fireball
+                    SpellsCastGlobalValue -= 10;
+                    if (target.Type == Card.CType.HERO)
+                    {
+                        SpellsCastGlobalValue -= 7;
+                    }
+                    break;
+
+                case Card.Cards.CS2_024://Frostbolt
+                    SpellsCastGlobalValue -= 5;
+                    break;
+
+                case Card.Cards.AT_005://Polymorph: Boar
+                    if (target.IsFriend)
+                    {
+                        SpellsCastGlobalValue -= 15;
+                    }
+                    else
+                    {
+                        SpellsCastGlobalValue -= 12;
+                    }
+                    break;
+
+                case Card.Cards.PART_001://Armor Plating
+                    SpellsCastGlobalValue -= 1;
+                    break;
+
+                case Card.Cards.PART_002://Time Rewinder
+                    SpellsCastGlobalValue -= 1;
+                    break;
+
+                case Card.Cards.PART_003://Rusty Horn
+                    SpellsCastGlobalValue -= 1;
+                    break;
+
+                case Card.Cards.PART_004://Finicky Cloakfield
+                    SpellsCastGlobalValue -= 5;
+                    break;
+
+                case Card.Cards.PART_005://Emergency Coolant
+                    SpellsCastGlobalValue -= 1;
+                    break;
+
+                case Card.Cards.PART_006://Reversing Switch
+                    SpellsCastGlobalValue -= 1;
+                    if (target.CanAttack == false && target.IsFriend == true)
+                    {
+                        SpellsCastGlobalValue -= 5;
+                    }
+                    break;
+
+                case Card.Cards.PART_007://Whirling Blades
+                    SpellsCastGlobalValue -= 1;
+                    break;
+
+                case Card.Cards.GAME_005://The Coin
+                    SpellsCastGlobalValue -= 4;
+                    break;
+            }
+
+            if (spell.Template.IsSecret)
+            {
+                SpellsCastGlobalValue += 5;
+            }
         }
 
         public override void OnCastWeapon(Board board, Card weapon, Card target)
         {
-
+            if (board.WeaponFriend != null && board.WeaponFriend.CurrentDurability >= 1 && board.WeaponFriend.Template.Id != Card.Cards.CS2_091)
+            {
+                GlobalValueModifier -= 6;
+            }
+            if (myDeck.isMechWarrior(board))
+            {
+                GlobalValueModifier += 2;
+            }
         }
 
         public override void OnAttack(Board board, Card attacker, Card target)
         {
+            if (myDeck.isMechWarrior(board))
+            {
+                if (target == board.HeroEnemy && board.MinionEnemy.Count > 0 && (board.HeroEnemy.CurrentHealth + board.HeroEnemy.CurrentArmor) >= 20) //If enemy health is high, attack minion instead
+                {
+                    GlobalValueModifier -= 5;
+                }
+            }
 
+            if (attacker.Type == Card.CType.WEAPON && target.Type == Card.CType.HERO && board.Hand.FindAll(x => x.Type == Card.CType.WEAPON).Count == 0 && board.WeaponFriend.CurrentDurability == 1) //If we have a weapon with 1 durability and no other weapon in hand, avoid to attack the HERO
+            {
+                GlobalValueModifier -= 18;
+            }
+
+            if (board.WeaponFriend.Template.Id == Card.Cards.FP1_021 && board.WeaponFriend.CurrentDurability == 1 && target.CurrentHealth == 1 && !target.IsTaunt) //If Death's Bite durability is 1, avoid to directly attack 1 health minion (unless if its taunt)
+            {
+                GlobalValueModifier -= 46;
+            }
+
+            if (target.Template.Id == Card.Cards.EX1_007 && target.IsFriend == false) //Try to one shot acolyte to avoid enemy draw
+            {
+                if (attacker.CurrentAtk >= target.CurrentHealth)
+                {
+                    GlobalValueModifier += 4;
+                    if (board.EnemyClass == Card.CClass.WARRIOR)
+                    {
+                        GlobalValueModifier += 4;
+                    }
+                }
+            }
         }
 
         public override void OnCastAbility(Board board, Card ability, Card target)
         {
+            if (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.AT_076) >= 1)
+            {
+                GlobalValueModifier += 5;
+            }
 
+            if (myDeck.isMechWarrior(board))
+            {
+                GlobalValueModifier += 1;
+            }
         }
 
         public override void OnProcessAction(Action a, Board board)
@@ -503,11 +903,96 @@ namespace SmartBot.Plugins.API
             return i;
         }
 
+        public int GetDmgInHand(Board board)
+        {
+            int iw = 0;
+            int i = 0;
+
+            foreach (Card card in board.Hand)
+            {
+                if (card.Type == Card.CType.WEAPON)//Weapons
+                {
+                    if (card.CurrentAtk >= iw)
+                    {
+                        iw = card.CurrentAtk;
+                    }
+                }
+                if (card.Template.Id == Card.Cards.NEW1_011)//Kor'kron Elite
+                {
+                    i += 4;
+                }
+                if (card.Template.Id == Card.Cards.CS2_105) //Heroic strike
+                {
+                    i += 4;
+                }
+                if (card.Template.Id == Card.Cards.EX1_408) //Mortal Strike
+                {
+                    if (board.HeroFriend.CurrentHealth < 12)
+                    {
+                        i += 6;
+                    }
+                    else
+                    {
+                        i += 4;
+                    }
+                }
+                if (card.Template.Id == Card.Cards.CS2_029) //Fireball
+                {
+                    i += 6;
+                }
+                if (card.Template.Id == Card.Cards.CS2_024) //Frostbolt
+                {
+                    i += 3;
+                }
+            }
+            if (board.WeaponFriend != null && board.HeroFriend.CanAttack == false)
+            {
+                i += board.HeroFriend.CurrentAtk;
+            }
+            else
+            {
+                i += iw; //We add weapon hand dmg
+            }
+
+            //Debug("We have " + i + "dmg in hand");
+            return i;
+        }
+
         public class myDeck
         {
             public static bool isPaladinSecret(Board board)
             {
                 //Check if we play paladin secret
+                return true;
+            }
+            public static bool isZoo(Board board)
+            {
+                //Check if we play Zoo
+                return true;
+            }
+            public static bool isMechWarrior(Board board)
+            {
+                //Check if we play Mech Warrior
+                return true;
+            }
+            public static bool isMechMage(Board board)
+            {
+                //Check if we play Mech Mage
+                return true;
+            }
+            public static bool isWorgenOtk(Board board)
+            {
+                //Check if we play Mech Mage
+                return true;
+            }
+            public static bool isFaceWarrior(Board board)
+            {
+                //Check if we play Face Warrior
+                return true;
+            }
+            public static bool isPriestControl(Board board)
+            {
+                //Check if we play Priest Control
                 return true;
             }
         }
