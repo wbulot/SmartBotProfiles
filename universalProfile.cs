@@ -415,7 +415,15 @@ namespace SmartBot.Plugins.API
 
         public override void OnCastMinion(Board board, Card minion, Card target)
         {
-
+            switch (minion.Template.Id)
+            {
+                case Card.Cards.AT_079://Mysterious Challenger
+                    if (myDeck.isPaladinSecret(board))
+                    {
+                        GlobalValueModifier += 10;
+                    }
+                    break;
+            }
         }
 
         public override void OnMinionDeath(Board board, Card minion)
