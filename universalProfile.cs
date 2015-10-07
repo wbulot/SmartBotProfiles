@@ -497,7 +497,7 @@ namespace SmartBot.Plugins.API
 
         public class myDeck
         {
-            public static bool isPaladinSecret()
+            public static bool isPaladinSecret(Board board)
             {
                 //Check if we play paladin secret
                 return true;
@@ -506,7 +506,7 @@ namespace SmartBot.Plugins.API
 
         public class opponentDeck
         {
-            public static bool isHandLock()
+            public static bool isHandLock(Board board)
             {
                 //Check if opponent has played some handlock card (check graveyard)
                 if (board.TurnCount == 3 && board.EnemyGraveyard.Count == 0 && board.HeroEnemy.Template.Id == Card.Cards.HERO_07)
@@ -519,7 +519,7 @@ namespace SmartBot.Plugins.API
                 }
             }
 
-            public static bool isFreezeMage()
+            public static bool isFreezeMage(Board board)
             {
                 if (board.EnemyGraveyard.Count(x => x == Card.Cards.NEW1_021) >= 1 && board.HeroEnemy.Template.Id == Card.Cards.HERO_08)
                 {
