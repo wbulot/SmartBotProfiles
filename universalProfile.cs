@@ -860,18 +860,8 @@ namespace SmartBot.Plugins.API
         public override RemoteProfile DeepClone()
         {
             bProfile ret = new bProfile();
-            ret.HeroEnemyHealthValue = HeroEnemyHealthValue;
-            ret.HeroFriendHealthValue = HeroFriendHealthValue;
-            ret.MinionEnemyAttackValue = MinionEnemyAttackValue;
-            ret.MinionEnemyHealthValue = MinionEnemyHealthValue;
-            ret.MinionFriendAttackValue = MinionFriendAttackValue;
-            ret.MinionFriendHealthValue = MinionFriendHealthValue;
-
-            ret.GlobalValueModifier = GlobalValueModifier;
-
             ret._logBestMove.AddRange(_logBestMove);
             ret._log = _log;
-
             return ret;
         }
 
