@@ -1,6 +1,6 @@
-﻿//Smarbot Profile
-//Deck from :
+﻿//Smarbot Universal Profile
 //Contributors : Wbulot
+//Decks supported : Paladin Secret - Zoo - Worgen OTK - FaceWarrior - Priest - Warrior Mech - Mage Mech -
 
 using System.Linq;
 using System.Collections.Generic;
@@ -65,6 +65,7 @@ namespace SmartBot.Plugins.API
             return value;
         }
 
+        //Uncomment this only for Debug wierd play
         //public override void OnBoardReady(Board board)
         //{
         //    if (board.IsOwnTurn)
@@ -494,45 +495,40 @@ namespace SmartBot.Plugins.API
             return i;
         }
 
-        private bool IsPaladinSecret(Board board)
+        public class myDeck
         {
-            //Check if our deck is Paladin secret
-            return true;
-        }
-
-        private bool IsAggroOpponent(Board board)
-        {
-            if (board.TurnCount == 2 && board.EnemyGraveyard.Count + board.MinionEnemy.Count > 2 || board.TurnCount == 3 && board.EnemyGraveyard.Count + board.MinionEnemy.Count > 3 || board.TurnCount == 4 && board.EnemyGraveyard.Count + board.MinionEnemy.Count > 4 || board.TurnCount == 5 && board.EnemyGraveyard.Count + board.MinionEnemy.Count > 5)
+            public static bool isPaladinSecret()
             {
+                //Check if we play paladin secret
                 return true;
-            }
-            else
-            {
-                return false;
             }
         }
 
-        private bool IsFreezeMageOpponent(Board board)
+        public class opponentDeck
         {
-            if (board.EnemyGraveyard.Count(x => x == Card.Cards.NEW1_021) >= 1 && board.HeroEnemy.Template.Id == Card.Cards.HERO_08)
+            public static bool isHandLock()
             {
-                return true;
+                //Check if opponent has played some handlock card (check graveyard)
+                if (board.TurnCount == 3 && board.EnemyGraveyard.Count == 0 && board.HeroEnemy.Template.Id == Card.Cards.HERO_07)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
-            else
-            {
-                return false;
-            }
-        }
 
-        private bool IsHandLockOpponent(Board board)
-        {
-            if (board.TurnCount == 3 && board.EnemyGraveyard.Count == 0 && board.HeroEnemy.Template.Id == Card.Cards.HERO_07)
+            public static bool isFreezeMage()
             {
-                return true;
-            }
-            else
-            {
-                return false;
+                if (board.EnemyGraveyard.Count(x => x == Card.Cards.NEW1_021) >= 1 && board.HeroEnemy.Template.Id == Card.Cards.HERO_08)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
     }
