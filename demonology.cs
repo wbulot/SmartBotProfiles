@@ -330,7 +330,6 @@ namespace SmartBot.Plugins.API
                     {
                         MinionCastGlobalValue += 5;
                     }
-
                     break;
 
                 case Card.Cards.EX1_310://Doomguard
@@ -387,7 +386,6 @@ namespace SmartBot.Plugins.API
                     {
                         MinionCastGlobalValue -= 2;
                     }
-
                     break;
 
                 case Card.Cards.FP1_002://Haunted Creeper
@@ -653,7 +651,7 @@ namespace SmartBot.Plugins.API
                 HeroPowerGlobalCost += 3;
             }
 
-            if (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.FP1_022) >= 1 && board.Hand.Count(x => x.Template.Id == Card.Cards.EX1_310) >= 1)
+            if (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.FP1_022) >= 1 && board.Hand.Count(x => x.Template.Id == Card.Cards.EX1_310) >= 1) //Avoid HeroPower if we have Voidcaller on board and Doomguard in Hand
             {
                 HeroPowerGlobalCost += 3;
             }
