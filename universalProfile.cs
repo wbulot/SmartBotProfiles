@@ -65,6 +65,28 @@ namespace SmartBot.Plugins.API
                 MinionFriendAttackValue = 3;
                 MinionFriendHealthValue = 2;
             }
+            else if (myDeck.isZoo(board))
+            {
+                FriendCardDrawValue = 2;
+                EnemyCardDrawValue = 3;
+                HeroEnemyHealthValue = 2;
+                HeroFriendHealthValue = 2;
+                MinionEnemyAttackValue = 3;
+                MinionEnemyHealthValue = 2;
+                MinionFriendAttackValue = 2;
+                MinionFriendHealthValue = 2;
+                if (board.RootBoard.HeroFriend.CurrentHealth + board.RootBoard.HeroFriend.CurrentArmor <= 12)
+                {
+                    if (board.EnemyClass == Card.CClass.HUNTER)
+                    {
+                        HeroFriendHealthValue = 29;
+                    }
+                    else
+                    {
+                        HeroFriendHealthValue = 7;
+                    }
+                }
+            }
             
 
             //Hero friend value
@@ -159,7 +181,7 @@ namespace SmartBot.Plugins.API
 
                 //Windfury value
                 if (card.IsWindfury)
-                    value += 4;
+                    value += 6;
 
                 //Divine shield value
                 if (card.IsDivineShield)
@@ -447,7 +469,7 @@ namespace SmartBot.Plugins.API
                     break;
 
                 case Card.Cards.CS2_188://Abusive Sergeant
-                    GlobalValueModifier -= 9;
+                    GlobalValueModifier -= 8;
                     if (board.MinionEnemy.Count == 0) //Avoid play abusive if empty enemy board (use it for trade)
                     {
                         GlobalValueModifier -= 4;
@@ -455,12 +477,9 @@ namespace SmartBot.Plugins.API
                     break;
 
                 case Card.Cards.FP1_002://Haunted Creeper
-                    if (myDeck.isPaladinSecret(board))
+                    if (board.Hand.Count(x => x.Template.Id == Card.Cards.NEW1_019) >= 1 && board.ManaAvailable <= 3)
                     {
-                        if (board.Hand.Count(x => x.Template.Id == Card.Cards.NEW1_019) >= 1 && board.ManaAvailable <= 3)
-                        {
-                            GlobalValueModifier += 7;
-                        }
+                        GlobalValueModifier += 7;
                     }
                     break;
 
@@ -492,13 +511,6 @@ namespace SmartBot.Plugins.API
 
                 case Card.Cards.AT_076://Murloc Knight
                     GlobalValueModifier -= 5;
-                    break;
-
-                case Card.Cards.NEW1_019://Knife Juggler
-                    if (CanSurvive(minion, board) == false)
-                    {
-                        GlobalValueModifier -= 2;
-                    }
                     break;
 
                 case Card.Cards.GVG_013://Cogmaster
@@ -539,6 +551,78 @@ namespace SmartBot.Plugins.API
                 case Card.Cards.EX1_116://Leeroy Jenkins
                     GlobalValueModifier -= 30;
                     break;
+
+                case Card.Cards.EX1_319://Flame Imp
+                    if (board.TurnCount == 1)
+                    {
+                        GlobalValueModifier += 5;
+                    }
+                    break;
+
+                case Card.Cards.EX1_310://Doomguard
+                    GlobalValueModifier -= 35;
+                    if (board.Hand.Count <= 2)
+                    {
+                        GlobalValueModifier += 9;
+                        if (board.Hand.Count(x => x.Template.Id == Card.Cards.EX1_316) == 1 && board.ManaAvailable >= 6)
+                        {
+                            GlobalValueModifier -= 30;
+                        }
+                    }
+                    if (board.Hand.Count(x => x.Template.Id == Card.Cards.EX1_310) == 2)
+                    {
+                        GlobalValueModifier += 8;
+                    }
+                    break;
+
+                case Card.Cards.FP1_007://Nerubian Egg
+                    GlobalValueModifier += 6;
+                    break;
+
+                case Card.Cards.EX1_162://Dire Wolf Alpha
+                    if (board.MinionFriend.Count == 0)
+                    {
+                        GlobalValueModifier -= 2;
+                    }
+                    break;
+
+                case Card.Cards.EX1_304://Void Terror
+                    GlobalValueModifier -= 10;
+                    if (board.MinionFriend.Count == 0 && board.TurnCount > 3)
+                    {
+                        GlobalValueModifier -= 5;
+                    }
+                    break;
+
+                case Card.Cards.CS2_064://Dread Infernal
+                    GlobalValueModifier -= 4;
+                    break;
+
+                case Card.Cards.FP1_022://Voidcaller
+                    if (board.Hand.Count(x => x.Race == Card.CRace.DEMON) > 1)
+                    {
+                        GlobalValueModifier += 5;
+                    }
+                    break;
+
+                case Card.Cards.AT_122://Gormok the Impaler
+                    if (board.MinionFriend.Count < 4)
+                    {
+                        GlobalValueModifier -= 5;
+                    }
+                    break;
+
+                case Card.Cards.NEW1_019://Knife Juggler
+                    if (CanSurvive(minion, board) == false || board.EnemyClass == Card.CClass.ROGUE)
+                    {
+                        GlobalValueModifier -= 2;
+                    }
+                    break;
+
+                case Card.Cards.EX1_093://Defender of Argus
+                    GlobalValueModifier -= 3;
+                    break;
+
             }
 
             foreach (Card card in board.MinionEnemy)
@@ -746,6 +830,87 @@ namespace SmartBot.Plugins.API
                     }
                     break;
 
+                case Card.Cards.EX1_316://Power Overwhelming
+                    GlobalValueModifier -= 9;
+                    if (target.CanAttack == false)
+                    {
+                        GlobalValueModifier -= 18;
+                    }
+                    if (board.Hand.Count <= 2)
+                    {
+                        bool hasDoomGuardInHand = (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.FP1_007) >= 1 && board.ManaAvailable >= 6);
+                        foreach (Card card in board.Hand)
+                        {
+                            if (card.Template.Id == Card.Cards.EX1_310 && hasDoomGuardInHand)//We have doomgard and PO in hand, egg on board, use PO before doomguard
+                            {
+                                GlobalValueModifier += 15;
+                            }
+                        }
+                    }
+                    if (board.MinionEnemy.Count == 0) //Avoid play PO if empty enemy board (use it for trade)
+                    {
+                        GlobalValueModifier -= 3;
+                    }
+                    break;
+
+                case Card.Cards.EX1_320://Bane of Doom
+                    if (target.CurrentHealth <= 2 && board.MinionFriend.Count < 7)
+                    {
+                        GlobalValueModifier += 10;
+                    }
+                    else
+                    {
+                        GlobalValueModifier -= 10;
+                    }
+                    break;
+
+                case Card.Cards.GVG_045://Imp-losion
+                    GlobalValueModifier -= 13;
+                    if (target.IsFriend)
+                    {
+                        GlobalValueModifier -= 6;
+                    }
+
+                    if (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.NEW1_019) >= 1)
+                    {
+                        GlobalValueModifier += 10;
+                    }
+
+                    if (board.WeaponEnemy != null && board.WeaponEnemy.CurrentDurability <= 1 && board.WeaponEnemy.Template.Id == Card.Cards.FP1_021)
+                    {
+                        GlobalValueModifier -= 8;
+                    }
+                    break;
+
+                case Card.Cards.BRM_005://Demonwrath
+                    GlobalValueModifier -= 5;
+                    break;
+
+                case Card.Cards.EX1_302://Mortal Coil
+                    GlobalValueModifier -= 5;
+                    if (target.IsFriend)
+                    {
+                        GlobalValueModifier -= 7;
+                    }
+                    if (target.CurrentHealth == 1)
+                    {
+                        GlobalValueModifier += 4;
+                    }
+                    break;
+
+                case Card.Cards.EX1_596://Demonfire
+                    GlobalValueModifier -= 9;
+                    if (target.IsFriend && target.CanAttack)
+                    {
+                        GlobalValueModifier += 4;
+                    }
+
+                    break;
+
+                case Card.Cards.GVG_015://Darkbomb
+                    GlobalValueModifier -= 5;
+                    break;
+
                 case Card.Cards.PART_001://Armor Plating
                     GlobalValueModifier -= 1;
                     break;
@@ -848,6 +1013,19 @@ namespace SmartBot.Plugins.API
             if (myDeck.isMechWarrior(board))
             {
                 GlobalValueModifier += 1;
+            }
+
+            if (myDeck.isZoo(board))
+            {
+                if (board.Hand.Count == 1 && board.Hand.Count(x => x.Template.Id == Card.Cards.EX1_310) == 1) //Avoid HeroPower if Doomguard in hand and alone
+                {
+                    GlobalValueModifier -= 3;
+                }
+
+                if (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.FP1_022) >= 1 && board.Hand.Count(x => x.Template.Id == Card.Cards.EX1_310) >= 1) //Avoid HeroPower if we have Voidcaller on board and Doomguard in Hand
+                {
+                    GlobalValueModifier -= 3;
+                }
             }
         }
 
@@ -956,11 +1134,11 @@ namespace SmartBot.Plugins.API
             }
             public static bool isZoo(Board board)
             {
-                return false;
+                return true;
             }
             public static bool isMechWarrior(Board board)
             {
-                return true;
+                return false;
             }
             public static bool isMechMage(Board board)
             {
