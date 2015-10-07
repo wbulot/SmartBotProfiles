@@ -107,14 +107,14 @@ namespace SmartBot.Plugins.API
                 value += GetCardValue(board, c);
             }
 
+            value += GlobalValueModifier;
+
             //Lethal and save my ass
             if (board.HeroEnemy.CurrentHealth <= 0)
                 value += 100000;
 
             if (board.HeroFriend.CurrentHealth <= 0 && board.FriendCardDraw == 0)
                 value -= 100000;
-
-            value += GlobalValueModifier;
 
             value += board.FriendCardDraw * FriendCardDrawValue;
             value -= board.EnemyCardDraw * EnemyCardDrawValue;
@@ -1017,6 +1017,7 @@ namespace SmartBot.Plugins.API
 
             if (myDeck.isZoo(board))
             {
+                GlobalValueModifier += 3;
                 if (board.Hand.Count == 1 && board.Hand.Count(x => x.Template.Id == Card.Cards.EX1_310) == 1) //Avoid HeroPower if Doomguard in hand and alone
                 {
                     GlobalValueModifier -= 3;
@@ -1038,6 +1039,7 @@ namespace SmartBot.Plugins.API
         public override RemoteProfile DeepClone()
         {
             bProfile ret = new bProfile();
+            ret.GlobalValueModifier = GlobalValueModifier;
             ret._logBestMove.AddRange(_logBestMove);
             ret._log = _log;
             return ret;

@@ -118,6 +118,20 @@ namespace SmartBot.Plugins.API
             return value;
         }
 
+        //Uncomment this only for Debug wierd play
+        //public override void OnBoardReady(Board board)
+        //{
+        //    if (board.IsOwnTurn)
+        //    {
+        //        foreach (var item in board.ActionsStack)
+        //        {
+        //            Debug(item.ToString());
+        //        }
+
+        //        Debug("Board : " + board.GetValue());
+        //    }
+        //}
+
         public float GetCardValue(Board board, Card card)
         {
             float value = 0;
