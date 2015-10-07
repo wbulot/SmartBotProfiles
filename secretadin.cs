@@ -586,7 +586,6 @@ namespace SmartBot.Plugins.API
         public override void OnProcessAction(Action a, Board board)
         {
             float moveVal = board.TrapMgr.GetSecretModifier(a, board, true);
-            //Debug(moveVal.ToString());
             if (board.EnemyClass != Card.CClass.MAGE)
             {
                 SecretModifier += (int)moveVal;
