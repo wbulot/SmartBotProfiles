@@ -33,6 +33,7 @@ namespace SmartBot.Plugins.API
             //Change base value according to the deck played and situation
             if (myDeck.isPaladinSecret(board))
             {
+                Debug("Paladin Secret");
                 FriendCardDrawValue = 6;
                 EnemyCardDrawValue = 0;
                 HeroEnemyHealthValue = 3;
@@ -56,6 +57,7 @@ namespace SmartBot.Plugins.API
             }
             else if (myDeck.isMechWarrior(board) || myDeck.isMechMage(board))
             {
+                Debug("Mech Warrior detected");
                 FriendCardDrawValue = 5;
                 EnemyCardDrawValue = 6;
                 HeroEnemyHealthValue = 3;
@@ -67,6 +69,7 @@ namespace SmartBot.Plugins.API
             }
             else if (myDeck.isZoo(board))
             {
+                Debug("Zoo detected");
                 FriendCardDrawValue = 2;
                 EnemyCardDrawValue = 3;
                 HeroEnemyHealthValue = 2;
@@ -1124,7 +1127,7 @@ namespace SmartBot.Plugins.API
                 i += iw; //We add weapon hand dmg
             }
 
-            //Debug("We have " + i + "dmg in hand");
+            Debug("We have " + i + "dmg in hand");
             return i;
         }
 
@@ -1132,31 +1135,87 @@ namespace SmartBot.Plugins.API
         {
             public static bool isPaladinSecret(Board board)
             {
-                return false;
+                if (board.FriendClass == Card.CClass.PALADIN && board.Deck.Count(x => CardTemplate.LoadFromId(x).Id == Card.Cards.AT_079) >= 1)
+                {
+                    //Debug("Paladin Secret detected");
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+                
             }
             public static bool isZoo(Board board)
             {
-                return true;
+                if (board.FriendClass == Card.CClass.WARLOCK)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             public static bool isMechWarrior(Board board)
             {
-                return false;
+                if (board.FriendClass == Card.CClass.WARRIOR && board.Deck.Count( x => CardTemplate.LoadFromId(x).Race == Card.CRace.MECH) >= 10)
+                {
+                    //Debug("Mech Warrior detected");
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             public static bool isMechMage(Board board)
             {
-                return false;
+                if (board.FriendClass == Card.CClass.MAGE)
+                {
+                    //Debug("Mech Mage detected");
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             public static bool isWorgenOtk(Board board)
             {
-                return false;
+                if (board.FriendClass == Card.CClass.WARRIOR && board.Deck.Count(x => CardTemplate.LoadFromId(x).Id == Card.Cards.EX1_412) >= 1)
+                {
+                    //Debug("WorgenOtk detected");
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             public static bool isFaceWarrior(Board board)
             {
-                return false;
+                if (board.FriendClass == Card.CClass.WARRIOR)
+                {
+                    //Debug("Face Warrior detected");
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             public static bool isPriestControl(Board board)
             {
-                return false;
+                if (board.FriendClass == Card.CClass.PRIEST)
+                {
+                    //Debug("Priest control detected");
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
 
