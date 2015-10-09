@@ -8,12 +8,9 @@ namespace SmartBot.Plugins.API
 {
     public class bProfile : RemoteProfile
     {
-        private int EnemyCardDrawValue = 2;
         //Init value for Card Draw
+        private int EnemyCardDrawValue = 2;
         private int FriendCardDrawValue = 2;
-
-        //GlobalValueModifier
-        private int GlobalValueModifier;
 
         //Init value for heros
         private int HeroEnemyHealthValue = 2;
@@ -25,6 +22,9 @@ namespace SmartBot.Plugins.API
         private int MinionFriendAttackValue = 2;
         private int MinionFriendHealthValue = 2;
 
+        //GlobalValueModifier
+        private int GlobalValueModifier;
+
         public override float GetBoardValue(Board board)
         {
             float value = 0;
@@ -32,7 +32,7 @@ namespace SmartBot.Plugins.API
             //Change base value according to the deck played and situation
             if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.PaladinSecret)
             {
-                Debug("Paladin Secret");
+                //Debug("Secretatin");
                 FriendCardDrawValue = 6;
                 EnemyCardDrawValue = 0;
                 HeroEnemyHealthValue = 3;
@@ -55,7 +55,7 @@ namespace SmartBot.Plugins.API
             else if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechMage
                      || ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior)
             {
-                Debug("Mech Warrior detected");
+                //Debug("Mech");
                 FriendCardDrawValue = 5;
                 EnemyCardDrawValue = 6;
                 HeroEnemyHealthValue = 3;
@@ -64,10 +64,15 @@ namespace SmartBot.Plugins.API
                 MinionEnemyHealthValue = 2;
                 MinionFriendAttackValue = 3;
                 MinionFriendHealthValue = 2;
+                if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechMage)
+                {
+                    if (board.TurnCount <= 4) //Little more control before turn 4
+                        MinionEnemyAttackValue = 4;
+                }
             }
             else if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.Zoo)
             {
-                Debug("Zoo detected");
+                //Debug("Zoo");
                 FriendCardDrawValue = 2;
                 EnemyCardDrawValue = 3;
                 HeroEnemyHealthValue = 2;
@@ -85,7 +90,7 @@ namespace SmartBot.Plugins.API
                 }
             }
 
-
+            
             //Hero friend value
             value += (board.HeroFriend.CurrentHealth + board.HeroFriend.CurrentArmor)*HeroFriendHealthValue;
 
@@ -281,7 +286,7 @@ namespace SmartBot.Plugins.API
 
                     case Card.Cards.BRM_019: //Grim Patron
                         if (card.IsSilenced == false)
-                            value += 5;
+                            value += 10;
                         break;
 
                     case Card.Cards.EX1_084: //Warsong Commander
@@ -367,6 +372,16 @@ namespace SmartBot.Plugins.API
                     case Card.Cards.GVG_002: //Snowchugger
                         if (card.IsSilenced == false)
                             value += 10;
+                        break;
+
+                    case Card.Cards.CS2_235: //Northshire Cleric
+                        if (card.IsSilenced == false)
+                            value += 10;
+                        break;
+
+                    case Card.Cards.AT_076: //Murloc Knight
+                        if (card.IsSilenced == false)
+                            value += 5;
                         break;
                 }
             }
@@ -546,7 +561,7 @@ namespace SmartBot.Plugins.API
 
                 case Card.Cards.GVG_096: //Piloted Shredder
                     if (minion.IsFriend == false && minion.IsSilenced == false)
-                        GlobalValueModifier += 5;
+                        GlobalValueModifier += 3;
                     break;
 
                 case Card.Cards.FP1_007: //Nerubian Egg
@@ -722,7 +737,7 @@ namespace SmartBot.Plugins.API
                     break;
 
                 case Card.Cards.PART_001: //Armor Plating
-                    GlobalValueModifier -= 1;
+                    GlobalValueModifier -= 2;
                     break;
 
                 case Card.Cards.PART_002: //Time Rewinder
@@ -765,8 +780,7 @@ namespace SmartBot.Plugins.API
             if (board.WeaponFriend != null && board.WeaponFriend.CurrentDurability >= 1 &&
                 board.WeaponFriend.Template.Id != Card.Cards.CS2_091)
                 GlobalValueModifier -= 6;
-            if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior ||
-                ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechMage)
+            if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior)
                 GlobalValueModifier += 2;
         }
 
@@ -812,7 +826,7 @@ namespace SmartBot.Plugins.API
             if (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.AT_076) >= 1)
                 GlobalValueModifier += 5;
 
-            if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior)
+            if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior || ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechMage)
                 GlobalValueModifier += 1;
 
             if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.Zoo)
@@ -838,6 +852,12 @@ namespace SmartBot.Plugins.API
         public override RemoteProfile DeepClone()
         {
             bProfile ret = new bProfile();
+            ret.HeroEnemyHealthValue = HeroEnemyHealthValue;
+            ret.HeroFriendHealthValue = HeroFriendHealthValue;
+            ret.MinionEnemyAttackValue = MinionEnemyAttackValue;
+            ret.MinionEnemyHealthValue = MinionEnemyHealthValue;
+            ret.MinionFriendAttackValue = MinionFriendAttackValue;
+            ret.MinionFriendHealthValue = MinionFriendHealthValue;
             ret.GlobalValueModifier = GlobalValueModifier;
             ret._logBestMove.AddRange(_logBestMove);
             ret._log = _log;
@@ -900,7 +920,7 @@ namespace SmartBot.Plugins.API
             else
                 i += iw; //We add weapon hand dmg
 
-            Debug("We have " + i + "dmg in hand");
+            //Debug("We have " + i + "dmg in hand");
             return i;
         }
 
@@ -971,7 +991,6 @@ namespace SmartBot.Plugins.API
                 if (board.FriendClass == Card.CClass.PALADIN &&
                     board.Deck.Count(x => CardTemplate.LoadFromId(x).Id == Card.Cards.AT_079) >= 1)
                 {
-                    //Debug("Paladin Secret detected");
                     return true;
                 }
                 return false;
@@ -989,7 +1008,6 @@ namespace SmartBot.Plugins.API
                 if (board.FriendClass == Card.CClass.WARRIOR &&
                     board.Deck.Count(x => CardTemplate.LoadFromId(x).Race == Card.CRace.MECH) >= 10)
                 {
-                    //Debug("Mech Warrior detected");
                     return true;
                 }
                 return false;
@@ -997,9 +1015,9 @@ namespace SmartBot.Plugins.API
 
             public static bool isMechMage(Board board)
             {
-                if (board.FriendClass == Card.CClass.MAGE)
+                if (board.FriendClass == Card.CClass.MAGE &&
+                    board.Deck.Count(x => CardTemplate.LoadFromId(x).Race == Card.CRace.MECH) >= 10)
                 {
-                    //Debug("Mech Mage detected");
                     return true;
                 }
                 return false;
@@ -1010,7 +1028,6 @@ namespace SmartBot.Plugins.API
                 if (board.FriendClass == Card.CClass.WARRIOR &&
                     board.Deck.Count(x => CardTemplate.LoadFromId(x).Id == Card.Cards.EX1_412) >= 1)
                 {
-                    //Debug("WorgenOtk detected");
                     return true;
                 }
                 return false;
@@ -1020,7 +1037,6 @@ namespace SmartBot.Plugins.API
             {
                 if (board.FriendClass == Card.CClass.WARRIOR)
                 {
-                    //Debug("Face Warrior detected");
                     return true;
                 }
                 return false;
@@ -1030,7 +1046,6 @@ namespace SmartBot.Plugins.API
             {
                 if (board.FriendClass == Card.CClass.PRIEST)
                 {
-                    //Debug("Priest control detected");
                     return true;
                 }
                 return false;

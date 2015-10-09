@@ -124,18 +124,18 @@ namespace SmartBot.Plugins.API
             return value;
         }
 
-        //public override void OnBoardReady(Board board)
-        //{
-        //    if (board.IsOwnTurn)
-        //    {
-        //        foreach (var item in board.ActionsStack)
-        //        {
-        //            Debug(item.ToString());
-        //        }
+        public override void OnBoardReady(Board board)
+        {
+            if (board.IsOwnTurn)
+            {
+                foreach (var item in board.ActionsStack)
+                {
+                    Debug(item.ToString());
+                }
 
-        //        Debug("Board : " + board.GetValue());
-        //    }
-        //}
+                Debug("Board : " + board.GetValue());
+            }
+        }
 
         public float GetCardValue(Board board, Card card)
         {
