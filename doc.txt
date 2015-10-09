@@ -1,1 +1,0 @@
-See exemple at : https://github.com/wirmate/SmartBotProfiles/blob/master/Template/TemplateProfile.cs
