@@ -1,6 +1,6 @@
 ﻿//Smarbot Universal Profile
 //Contributors : Wbulot
-//Decks supported : Paladin Secret - Zoo - Worgen OTK - FaceWarrior - Priest - Warrior Mech - Mage Mech -
+//Decks supported : Paladin Secret - Zoo - Worgen OTK - FaceWarrior - Warrior Mech - Mage Mech -
 
 using System.Linq;
 
