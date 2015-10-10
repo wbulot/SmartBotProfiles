@@ -679,7 +679,7 @@ namespace SmartBot.Plugins.API
                     break;
 
                 case Card.Cards.CS2_024: //Frostbolt
-                    GlobalValueModifier -= 5;
+                    GlobalValueModifier -= 6;
                     break;
 
                 case Card.Cards.AT_005: //Polymorph: Boar
