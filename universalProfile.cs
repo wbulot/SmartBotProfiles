@@ -445,6 +445,10 @@ namespace SmartBot.Plugins.API
                 case Card.Cards.GVG_013: //Cogmaster
                     if (board.Hand.Count(x => x.Template.Id == Card.Cards.GVG_051) >= 1)
                         GlobalValueModifier += 3;
+                    if (board.TurnCount == 1)
+                    {
+                        GlobalValueModifier += 2;
+                    }
                     break;
 
                 case Card.Cards.GVG_102: //Tinkertown Technician
@@ -673,7 +677,7 @@ namespace SmartBot.Plugins.API
                     break;
 
                 case Card.Cards.CS2_029: //Fireball
-                    GlobalValueModifier -= 10;
+                    GlobalValueModifier -= 13;
                     if (target.Type == Card.CType.HERO)
                         GlobalValueModifier -= 7;
                     break;
