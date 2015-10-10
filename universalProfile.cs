@@ -157,7 +157,7 @@ namespace SmartBot.Plugins.API
                     value += 2 + card.CurrentAtk;
 
                 if (card.IsStealth)
-                    value += 2 + card.CurrentAtk;
+                    value += 1 + card.CurrentAtk;
 
                 if (card.IsTargetable == false)
                     value += 3;
@@ -386,6 +386,11 @@ namespace SmartBot.Plugins.API
                     case Card.Cards.AT_076: //Murloc Knight
                         if (card.IsSilenced == false)
                             value += 10;
+                        break;
+
+                    case Card.Cards.AT_038: //Darnassus Aspirant
+                        if (card.IsSilenced == false)
+                            value += 5;
                         break;
                 }
             }
@@ -648,7 +653,7 @@ namespace SmartBot.Plugins.API
                     break;
 
                 case Card.Cards.CS2_105: //Heroic Strike
-                    GlobalValueModifier -= 13;
+                    GlobalValueModifier -= 9;
                     break;
 
                 case Card.Cards.EX1_277: //Arcane Missiles
