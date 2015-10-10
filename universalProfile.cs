@@ -191,7 +191,7 @@ namespace SmartBot.Plugins.API
 
                 //Frozen Value
                 if (card.IsFrozen)
-                    value += 2 + card.CurrentAtk;
+                    value -= 1 + card.CurrentAtk;
 
                 value += card.CurrentHealth*MinionEnemyHealthValue + card.CurrentAtk*MinionEnemyAttackValue;
 
@@ -760,11 +760,11 @@ namespace SmartBot.Plugins.API
                     break;
 
                 case Card.Cards.PART_002: //Time Rewinder
-                    GlobalValueModifier -= 1;
+                    GlobalValueModifier -= 2;
                     break;
 
                 case Card.Cards.PART_003: //Rusty Horn
-                    GlobalValueModifier -= 1;
+                    GlobalValueModifier -= 2;
                     break;
 
                 case Card.Cards.PART_004: //Finicky Cloakfield
@@ -772,17 +772,17 @@ namespace SmartBot.Plugins.API
                     break;
 
                 case Card.Cards.PART_005: //Emergency Coolant
-                    GlobalValueModifier -= 1;
+                    GlobalValueModifier -= 2;
                     break;
 
                 case Card.Cards.PART_006: //Reversing Switch
-                    GlobalValueModifier -= 1;
+                    GlobalValueModifier -= 2;
                     if (target.CanAttack == false && target.IsFriend)
-                        GlobalValueModifier -= 5;
+                        GlobalValueModifier -= 4;
                     break;
 
                 case Card.Cards.PART_007: //Whirling Blades
-                    GlobalValueModifier -= 1;
+                    GlobalValueModifier -= 2;
                     break;
 
                 case Card.Cards.GAME_005: //The Coin
@@ -819,7 +819,7 @@ namespace SmartBot.Plugins.API
                     board.Hand.FindAll(x => x.Type == Card.CType.WEAPON).Count == 0 &&
                     board.WeaponFriend.CurrentDurability == 1)
                     //If we have a weapon with 1 durability and no other weapon in hand, avoid to attack the HERO
-                    GlobalValueModifier -= 18;
+                    GlobalValueModifier -= 15;
 
                 if (board.WeaponFriend.Template.Id == Card.Cards.FP1_021 && board.WeaponFriend.CurrentDurability == 1 &&
                     target.CurrentHealth == 1 && !target.IsTaunt)
