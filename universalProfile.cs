@@ -575,6 +575,8 @@ namespace SmartBot.Plugins.API
                 case Card.Cards.GVG_096: //Piloted Shredder
                     if (minion.IsFriend == false && minion.IsSilenced == false)
                         GlobalValueModifier += 3;
+                    if (minion.IsFriend == true && minion.IsSilenced == false)
+                        GlobalValueModifier -= 3;
                     break;
 
                 case Card.Cards.FP1_007: //Nerubian Egg
