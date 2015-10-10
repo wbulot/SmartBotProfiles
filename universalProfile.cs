@@ -385,7 +385,7 @@ namespace SmartBot.Plugins.API
 
                     case Card.Cards.AT_076: //Murloc Knight
                         if (card.IsSilenced == false)
-                            value += 5;
+                            value += 10;
                         break;
                 }
             }
