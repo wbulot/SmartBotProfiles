@@ -183,7 +183,7 @@ namespace SmartBot.Plugins.API
 
                 //Divine shield value
                 if (card.IsDivineShield)
-                    value += 2 + card.CurrentAtk;
+                    value += 1 + card.CurrentAtk;
 
                 //Targetable Value
                 if (card.IsTargetable == false)
@@ -460,6 +460,10 @@ namespace SmartBot.Plugins.API
                 case Card.Cards.GVG_004: //Goblin Blastmage
                     if (board.MinionFriend.Count(x => x.Race == Card.CRace.MECH) == 0)
                         GlobalValueModifier -= 6;
+                    break;
+
+                case Card.Cards.GVG_016: //Fel Reaver
+                        GlobalValueModifier -= 2;
                     break;
 
                 case Card.Cards.EX1_116: //Leeroy Jenkins
