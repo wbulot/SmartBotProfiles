@@ -355,7 +355,10 @@ namespace SmartBot.Plugins.API
 
                     case Card.Cards.NEW1_020: //Wild Pyromancer
                         if (card.IsSilenced == false)
-                            value += 5;
+                            if (board.MinionFriend.Count >= 2)
+                            {
+                                value += 5;
+                            }
                         break;
 
                     case Card.Cards.GVG_013: //Cogmaster
@@ -533,6 +536,14 @@ namespace SmartBot.Plugins.API
                 case Card.Cards.EX1_093: //Defender of Argus
                     GlobalValueModifier -= 3;
                     break;
+
+                case Card.Cards.GVG_069://Antique Healbot
+                    if (board.HeroFriend.CurrentHealth > 23)
+                    {
+                        GlobalValueModifier -= 5;
+                    }
+                    GlobalValueModifier -= 15;
+                    break;
             }
 
             foreach (Card card in board.MinionEnemy)
@@ -677,9 +688,11 @@ namespace SmartBot.Plugins.API
                     break;
 
                 case Card.Cards.CS2_029: //Fireball
-                    GlobalValueModifier -= 13;
-                    if (target.Type == Card.CType.HERO)
-                        GlobalValueModifier -= 7;
+                    GlobalValueModifier -= 19;
+                    if (target == board.HeroEnemy)
+                    {
+                        GlobalValueModifier -= 2;
+                    }
                     break;
 
                 case Card.Cards.CS2_024: //Frostbolt
