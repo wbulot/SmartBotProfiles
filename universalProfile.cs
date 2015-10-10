@@ -89,6 +89,10 @@ namespace SmartBot.Plugins.API
                         HeroFriendHealthValue = 7;
                 }
             }
+            else
+            {
+                Debug("Warning ! Your deck is not detected. Please play a supported deck.");
+            }
 
             
             //Hero friend value
