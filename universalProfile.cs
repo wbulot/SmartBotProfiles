@@ -89,6 +89,18 @@ namespace SmartBot.Plugins.API
                         HeroFriendHealthValue = 7;
                 }
             }
+            else if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.FaceHunter)
+            {
+                //Debug("FaceHunter");
+                FriendCardDrawValue = 2;
+                EnemyCardDrawValue = 2;
+                HeroEnemyHealthValue = 4;
+                HeroFriendHealthValue = 2;
+                MinionEnemyAttackValue = 2;
+                MinionEnemyHealthValue = 2;
+                MinionFriendAttackValue = 3;
+                MinionFriendHealthValue = 2;
+            }
             else
             {
                 Debug("Warning ! Your deck is not detected. Please play a supported deck.");
@@ -289,7 +301,7 @@ namespace SmartBot.Plugins.API
                         break;
 
                     case Card.Cards.BRM_019: //Grim Patron
-                        if (card.IsSilenced == false)
+                        if (card.IsSilenced == false && card.CurrentHealth > 1)
                             value += 10;
                         break;
 
@@ -414,6 +426,10 @@ namespace SmartBot.Plugins.API
                     GlobalValueModifier -= 8;
                     if (board.MinionEnemy.Count == 0) //Avoid play abusive if empty enemy board (use it for trade)
                         GlobalValueModifier -= 4;
+                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.FaceHunter)
+                    {
+                        GlobalValueModifier -= 3;
+                    }
                     break;
 
                 case Card.Cards.FP1_002: //Haunted Creeper
@@ -768,6 +784,40 @@ namespace SmartBot.Plugins.API
                     GlobalValueModifier -= 5;
                     break;
 
+                case Card.Cards.CS2_062: //Hellfire
+                    GlobalValueModifier -= 5;
+                    break;
+
+                case Card.Cards.EX1_539: //Kill Command
+                    GlobalValueModifier -= 15;
+                    break;
+
+                case Card.Cards.BRM_013: //Quick Shot
+                    GlobalValueModifier -= 10;
+                    break;
+
+                case Card.Cards.EX1_538: //Unleash the Hounds
+                    GlobalValueModifier -= 7;
+                    break;
+
+                case Card.Cards.EX1_610: //Explosive Trap
+                    if (board.MinionEnemy.Count <= 1)
+                    {
+                        GlobalValueModifier -= 1;
+                    }
+                    break;
+
+                case Card.Cards.EX1_544: //Flare
+                    if (board.EnemyClass == Card.CClass.MAGE || board.EnemyClass == Card.CClass.PALADIN || board.EnemyClass == Card.CClass.HUNTER)
+                    {
+                        GlobalValueModifier -= 5;
+                        if (board.SecretEnemy)
+                        {
+                            GlobalValueModifier += 5;
+                        }
+                    }
+                    break;
+
                 case Card.Cards.PART_001: //Armor Plating
                     GlobalValueModifier -= 2;
                     break;
@@ -812,14 +862,33 @@ namespace SmartBot.Plugins.API
             if (board.WeaponFriend != null && board.WeaponFriend.CurrentDurability >= 1 &&
                 board.WeaponFriend.Template.Id != Card.Cards.CS2_091)
                 GlobalValueModifier -= 6;
+
             if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior)
                 GlobalValueModifier += 2;
+
+            if (weapon.Template.Id == Card.Cards.GVG_043)//Glaivezooka
+            {
+                if (board.MinionFriend.Count == 0)
+                {
+                    GlobalValueModifier -= 3;
+                }
+                    
+            }
         }
 
         public override void OnAttack(Board board, Card attacker, Card target)
         {
             if (board.WeaponFriend != null && attacker.Type == Card.CType.WEAPON)
             {
+                if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.FaceHunter)
+                {
+                    if (board.WeaponFriend.Template.Id == Card.Cards.EX1_536 && board.WeaponFriend.CurrentDurability == 1 && board.Hand.FindAll(x => x.Type == Card.CType.WEAPON).Count == 0)
+                    {
+                        //Don't attack with an eaglehorn bow with 1 durability
+                        GlobalValueModifier -= 15;
+                    }
+                }
+
                 if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior)
                 {
                     if (target == board.HeroEnemy && board.MinionEnemy.Count > 0 &&
@@ -830,7 +899,8 @@ namespace SmartBot.Plugins.API
 
                 if (attacker.Type == Card.CType.WEAPON && target.Type == Card.CType.HERO &&
                     board.Hand.FindAll(x => x.Type == Card.CType.WEAPON).Count == 0 &&
-                    board.WeaponFriend.CurrentDurability == 1)
+                    board.WeaponFriend.CurrentDurability == 1 &&
+                    ArchetypeManager.GetFriendlyArchetype(board) != ArchetypeManager.Archetype.FaceHunter)
                     //If we have a weapon with 1 durability and no other weapon in hand, avoid to attack the HERO
                     GlobalValueModifier -= 15;
 
@@ -860,6 +930,9 @@ namespace SmartBot.Plugins.API
 
             if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior || ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechMage)
                 GlobalValueModifier += 1;
+
+            if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.FaceHunter)
+                GlobalValueModifier -= 4;
 
             if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.Zoo)
             {
@@ -947,10 +1020,10 @@ namespace SmartBot.Plugins.API
                 if (card.Template.Id == Card.Cards.CS2_024) //Frostbolt
                     i += 3;
             }
-            if (board.WeaponFriend != null && board.HeroFriend.CanAttack == false)
-                i += board.HeroFriend.CurrentAtk;
-            else
-                i += iw; //We add weapon hand dmg
+            //if (board.WeaponFriend != null && board.HeroFriend.CanAttack == false)
+            //    i += board.HeroFriend.CurrentAtk;
+            //else
+            //    i += iw; //We add weapon hand dmg
 
             //Debug("We have " + i + "dmg in hand");
             return i;
@@ -969,7 +1042,8 @@ namespace SmartBot.Plugins.API
                 FaceWarrior,
                 PriestControl,
                 Handlock,
-                FreezeMage
+                FreezeMage,
+                FaceHunter
             }
 
             private static bool _archetypeSetup;
@@ -1007,6 +1081,8 @@ namespace SmartBot.Plugins.API
                     _archetypeFriendly = Archetype.FaceWarrior;
                 else if (isPriestControl(board))
                     _archetypeFriendly = Archetype.PriestControl;
+                else if (isFaceHunter(board))
+                    _archetypeFriendly = Archetype.FaceHunter;
 
 
                 if (isHandLock(board))
@@ -1022,6 +1098,15 @@ namespace SmartBot.Plugins.API
             {
                 if (board.FriendClass == Card.CClass.PALADIN &&
                     board.Deck.Count(x => CardTemplate.LoadFromId(x).Id == Card.Cards.AT_079) >= 1)
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            public static bool isFaceHunter(Board board)
+            {
+                if (board.FriendClass == Card.CClass.HUNTER)
                 {
                     return true;
                 }
