@@ -751,7 +751,7 @@ namespace SmartBot.Plugins.API
                 case Card.Cards.GVG_045: //Imp-losion
                     GlobalValueModifier -= 13;
                     if (target.IsFriend)
-                        GlobalValueModifier -= 6;
+                        GlobalValueModifier -= 8;
 
                     if (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.NEW1_019) >= 1)
                         GlobalValueModifier += 10;
@@ -887,14 +887,6 @@ namespace SmartBot.Plugins.API
                         //Don't attack with an eaglehorn bow with 1 durability
                         GlobalValueModifier -= 15;
                     }
-                }
-
-                if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior)
-                {
-                    if (target == board.HeroEnemy && board.MinionEnemy.Count > 0 &&
-                        (board.HeroEnemy.CurrentHealth + board.HeroEnemy.CurrentArmor) >= 20)
-                        //If enemy health is high, attack minion instead
-                        GlobalValueModifier -= 5;
                 }
 
                 if (attacker.Type == Card.CType.WEAPON && target.Type == Card.CType.HERO &&
