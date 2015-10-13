@@ -89,6 +89,22 @@ namespace SmartBot.Plugins.API
                         HeroFriendHealthValue = 7;
                 }
             }
+            else if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
+            {
+                //Debug("worgenotk");
+                FriendCardDrawValue = 18;
+                EnemyCardDrawValue = 2;
+                HeroEnemyHealthValue = 3;
+                HeroFriendHealthValue = 2;
+                MinionEnemyAttackValue = 4;
+                MinionEnemyHealthValue = 2;
+                MinionFriendAttackValue = 3;
+                MinionFriendHealthValue = 2;
+                if (board.RootBoard.HeroFriend.CurrentHealth + board.RootBoard.HeroFriend.CurrentArmor <= 15)
+                {
+                    HeroFriendHealthValue = 7;
+                }
+            }
             else if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.FaceHunter)
             {
                 //Debug("FaceHunter");
@@ -252,7 +268,7 @@ namespace SmartBot.Plugins.API
 
                     case Card.Cards.EX1_559: //Archmage Antonidas
                         if (card.IsSilenced == false)
-                            value += 10;
+                            value += 15;
                         break;
 
                     case Card.Cards.GVG_021: //Mal'Ganis
@@ -407,6 +423,11 @@ namespace SmartBot.Plugins.API
                         if (card.IsSilenced == false)
                             value += 5;
                         break;
+
+                    case Card.Cards.EX1_055: //Mana Addict
+                        if (card.IsSilenced == false)
+                            value += 5;
+                        break;
                 }
             }
 
@@ -417,6 +438,63 @@ namespace SmartBot.Plugins.API
         {
             switch (minion.Template.Id)
             {
+                case Card.Cards.EX1_412://Raging Worgen
+                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
+                    {
+                        GlobalValueModifier -= 60;
+                        if (board.Hand.Count(x => x.Template.Id == Card.Cards.CS2_103) >= 1 && board.Hand.Count(x => x.Template.Id == Card.Cards.EX1_607) >= 1 && board.Hand.Count(x => x.Template.Id == Card.Cards.CS2_104) >= 1 && board.ManaAvailable >= 8 && board.MinionEnemy.Count(x => x.IsTaunt) == 0) //We check if we have the 4 combo card in hand. If yes, we cast 20 dmg.
+                        {
+                            if (board.HeroEnemy.CurrentHealth + board.HeroEnemy.CurrentArmor > 32) //If heroenemy has more than 32hp, we start doing damage
+                            {
+                                GlobalValueModifier += 25;
+                            }
+                            else
+                            {
+                                //Hero has 30hp max, we wait the total combo to kill him
+                            }
+                        }
+                    }
+                    break;
+
+                case Card.Cards.EX1_096://Loot Hoarder
+                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
+                    {
+                        GlobalValueModifier += 12;
+                    }
+                    break;
+
+                case Card.Cards.FP1_012://Sludge Belcher
+                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
+                    {
+                        GlobalValueModifier += 16;
+                    }
+                    break;
+
+                case Card.Cards.GVG_076://Explosive Sheep
+                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
+                    {
+                        GlobalValueModifier -= 9;
+                    }
+                    break;
+
+                case Card.Cards.EX1_007://Acolyte of Pain
+                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
+                    {
+                        GlobalValueModifier += 2;
+                    }
+                    break;
+
+		        case Card.Cards.EX1_603://Cruel Taskmaster
+                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
+                    {
+                        GlobalValueModifier -= 8;
+                        if (board.Hand.FindAll(x => x.Template.Id == Card.Cards.EX1_603).Count == 2) //If we have 2 taskmaster, increase cast value
+                        {
+                            GlobalValueModifier += 4;
+                        }
+                    }
+                    break;
+
                 case Card.Cards.AT_079: //Mysterious Challenger
                     if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.PaladinSecret)
                         GlobalValueModifier += 10;
@@ -438,20 +516,26 @@ namespace SmartBot.Plugins.API
                     break;
 
                 case Card.Cards.CS2_203: //Ironbeak Owl
-                    GlobalValueModifier -= 15;
-                    if (board.Hand.Count(x => x.Template.Id == Card.Cards.CS2_203) == 2)
-                        GlobalValueModifier += 10;
-
-                    if (board.EnemyClass == Card.CClass.HUNTER) //Inscrease value of owl against hunter
+                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
                     {
-                        if (target != null && target.IsFriend == false)
+                        GlobalValueModifier -= 18;
+                    }
+                    else
+                    {
+                        GlobalValueModifier -= 15;
+                    }
+                    if (board.Hand.Count(x => x.Template.Id == Card.Cards.CS2_203) == 2) //If wa have 2 owl, increase cast value
                             GlobalValueModifier += 10;
 
-                        if (target != null && target.Template.Id == Card.Cards.FP1_004)
-                            //Inscrease value of owl against mad scientitst
-                            GlobalValueModifier += 3;
-                    }
+                        if (board.EnemyClass == Card.CClass.HUNTER) //Inscrease value of owl against hunter
+                        {
+                            if (target != null && target.IsFriend == false)
+                                GlobalValueModifier += 10;
 
+                            if (target != null && target.Template.Id == Card.Cards.FP1_004)
+                                //Inscrease value of owl against mad scientitst
+                                GlobalValueModifier += 3;
+                        }
                     if (target != null && target.Template.Id == Card.Cards.NEW1_021 && target.IsSilenced == false)
                         //Inscrease value of owl against doomsayer
                         GlobalValueModifier += 110;
@@ -573,6 +657,14 @@ namespace SmartBot.Plugins.API
         {
             switch (minion.Template.Id)
             {
+                case Card.Cards.EX1_096: //Mad Scientist
+                    if (minion.IsFriend == true && minion.IsSilenced == false)
+                        if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
+                        {
+                            GlobalValueModifier -= 15;
+                        }
+                    break;
+
                 case Card.Cards.FP1_004: //Mad Scientist
                     if (minion.IsFriend == false && minion.IsSilenced == false)
                         GlobalValueModifier -= 20;
@@ -636,6 +728,93 @@ namespace SmartBot.Plugins.API
         {
             switch (spell.Template.Id)
             {
+                case Card.Cards.CS2_108://Execute
+                    GlobalValueModifier -= 21;
+                    if (board.Hand.FindAll(x => x.Template.Id == Card.Cards.CS2_108).Count == 2)
+                    {
+                        GlobalValueModifier += 5;
+                    }
+                    break;
+
+                case Card.Cards.CS2_103://Charge
+                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
+                    {
+                        GlobalValueModifier -= 70;
+                        if (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.EX1_412) == 1 && board.Hand.Count(x => x.Template.Id == Card.Cards.EX1_607) >= 1 && board.Hand.Count(x => x.Template.Id == Card.Cards.CS2_104) >= 1 && target.Template.Id == Card.Cards.EX1_412)
+                        {
+                            //Debug("worgen trouvé sur le board phase 1");
+                            GlobalValueModifier += 50;
+                            if (board.FriendGraveyard.FindAll(x => x == Card.Cards.CS2_103).Count == 1)
+                            {
+                                //Debug("Une charge d'utilisé, on doit garder la 2e");
+                                GlobalValueModifier -= 25;
+                            }
+                        }
+                    }
+                    break;
+
+                case Card.Cards.EX1_607://Inner Rage
+                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
+                    {
+                        GlobalValueModifier -= 106;
+                        if (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.EX1_412) == 1 && board.Hand.Count(x => x.Template.Id == Card.Cards.CS2_104) >= 1 && target.Template.Id == Card.Cards.EX1_412)
+                        {
+                            //Debug("worgen trouvé sur le board phase 2");
+                            GlobalValueModifier += 100;
+                            if (board.FriendGraveyard.Count(x => x == Card.Cards.EX1_607) == 1)
+                            {
+                                //Debug("Une inner rage d'utilisé, on doit garder la 2e");
+                                GlobalValueModifier -= 50;
+                            }
+                        }
+                    }
+                    break;
+
+                case Card.Cards.CS2_104://Rampage
+                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
+                    {
+                        GlobalValueModifier -= 45;
+                        if (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.EX1_412) == 1 && target.Template.Id == Card.Cards.EX1_412 && target.CanAttack)
+                        {
+                            //Debug("worgen trouvé sur le board phase 3");
+                            GlobalValueModifier += 40;
+                        }
+                    }
+                    break;
+
+                case Card.Cards.EX1_410://Shield Slam
+                    GlobalValueModifier -= 12;
+                    if (target.IsFriend)//Avoid to target the acolyte or loot harder
+                    {
+                        GlobalValueModifier -= 19;
+                    }
+                    break;
+
+                case Card.Cards.EX1_407://Brawl
+                    GlobalValueModifier -= 21;
+                    break;
+
+                case Card.Cards.EX1_391://Slam
+                    GlobalValueModifier -= 10;
+                    if (target.IsFriend)//Avoid to target friend to draw
+                    {
+                        GlobalValueModifier -= 2;
+                    }
+                    break;
+
+                case Card.Cards.EX1_606://Shield Block
+                    GlobalValueModifier -= 25;
+                    if (board.Hand.Count(x => x.Template.Id == Card.Cards.EX1_410) == 1 && board.ManaAvailable > 3)//If we have shield slam, increase value
+                    {
+                        GlobalValueModifier += 15;
+                        //Debug("On monte la value car on a la combo shield block + shield slam. Mana dispo : " + board.ManaAvailable.ToString());
+                    }
+                    break;
+
+                case Card.Cards.EX1_400://Whirlwind
+                    GlobalValueModifier -= 13;
+                    break;
+
                 case Card.Cards.EX1_349: //Divine Favor
                     if ((board.Hand.Count > board.EnemyCardCount))
                         GlobalValueModifier -= 6;
@@ -863,6 +1042,9 @@ namespace SmartBot.Plugins.API
                 board.WeaponFriend.Template.Id != Card.Cards.CS2_091)
                 GlobalValueModifier -= 6;
 
+            if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
+                GlobalValueModifier += 1;
+
             if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior)
                 GlobalValueModifier += 2;
 
@@ -938,6 +1120,9 @@ namespace SmartBot.Plugins.API
                     //Avoid HeroPower if we have Voidcaller on board and Doomguard in Hand
                     GlobalValueModifier -= 3;
             }
+
+            if (board.TurnCount == 1) //Avoid coin Heropower
+                GlobalValueModifier += 7;
         }
 
         public void OnProcessAction(Action a, Board board)
@@ -1075,6 +1260,8 @@ namespace SmartBot.Plugins.API
                     _archetypeFriendly = Archetype.PriestControl;
                 else if (isFaceHunter(board))
                     _archetypeFriendly = Archetype.FaceHunter;
+                else if (isWorgenOtk(board))
+                    _archetypeFriendly = Archetype.WorgenOtk;
 
 
                 if (isHandLock(board))
@@ -1134,8 +1321,7 @@ namespace SmartBot.Plugins.API
 
             public static bool isWorgenOtk(Board board)
             {
-                if (board.FriendClass == Card.CClass.WARRIOR &&
-                    board.Deck.Count(x => CardTemplate.LoadFromId(x).Id == Card.Cards.EX1_412) >= 1)
+                if (board.FriendClass == Card.CClass.WARRIOR && board.Deck.Count(x => CardTemplate.LoadFromId(x).Id == Card.Cards.EX1_412) >= 1)
                 {
                     return true;
                 }
@@ -1144,10 +1330,10 @@ namespace SmartBot.Plugins.API
 
             public static bool isFaceWarrior(Board board)
             {
-                if (board.FriendClass == Card.CClass.WARRIOR)
-                {
-                    return true;
-                }
+                //if (board.FriendClass == Card.CClass.WARRIOR)
+                //{
+                //    return true;
+                //}
                 return false;
             }
 
