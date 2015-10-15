@@ -515,7 +515,7 @@ namespace SmartBot.Plugins.API
                     break;
 
                 case Card.Cards.AT_087://Argent Horserider
-                        GlobalValueModifier -= 5;
+                        GlobalValueModifier -= 7;
                     break;
 
                 case Card.Cards.FP1_012://Sludge Belcher
@@ -809,6 +809,10 @@ namespace SmartBot.Plugins.API
 
                 case Card.Cards.NEW1_031://Animal Companion
                     GlobalValueModifier += 7;
+                    break;
+
+                case Card.Cards.CS2_084://Hunter's Mark
+                    GlobalValueModifier -= 10;
                     break;
 
                 case Card.Cards.CS2_108://Execute
