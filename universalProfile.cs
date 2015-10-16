@@ -1,4 +1,4 @@
-﻿//Smarbot Universal Profile
+//Smarbot Universal Profile
 //Contributors : Wbulot
 //Decks supported : Paladin Secret - Zoo - Worgen OTK - FaceWarrior - Warrior Mech - Mage Mech -
 
@@ -53,7 +53,8 @@ namespace SmartBot.Plugins.API
                 }
             }
             else if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechMage
-                     || ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior)
+                     || ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior
+                     || ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.TempoMage)
             {
                 //Debug("Mech");
                 FriendCardDrawValue = 5;
@@ -64,7 +65,7 @@ namespace SmartBot.Plugins.API
                 MinionEnemyHealthValue = 2;
                 MinionFriendAttackValue = 3;
                 MinionFriendHealthValue = 2;
-                if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechMage)
+                if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechMage || ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.TempoMage)
                 {
                     if (board.TurnCount <= 4) //Little more control before turn 4
                         MinionEnemyAttackValue = 4;
@@ -489,6 +490,21 @@ namespace SmartBot.Plugins.API
                         GlobalValueModifier += 4;
                     break;
 
+                case Card.Cards.BRM_002: //Flamewaker
+                    GlobalValueModifier -= 5;
+                    break;
+
+                case Card.Cards.EX1_559: //Archmage Antonidas
+                    if (board.SecretEnemy)
+                        GlobalValueModifier -= 100;
+                    GlobalValueModifier -= 40;
+                    break;
+
+                case Card.Cards.NEW1_012: //Mana Wyrm
+                    if (board.TurnCount == 1)
+                        GlobalValueModifier += 5;
+                    break;
+
                 case Card.Cards.EX1_412://Raging Worgen
                     if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
                     {
@@ -804,6 +820,15 @@ namespace SmartBot.Plugins.API
 
         public override void OnCastSpell(Board board, Card spell, Card target)
         {
+            if (board.MinionFriend.Any(x => x.Template.Id == Card.Cards.EX1_559)) //Archmage Antonidas
+                GlobalValueModifier += 50;
+
+            if (board.MinionFriend.Any(x => x.Template.Id == Card.Cards.BRM_002)) //Flamewaker on board
+                GlobalValueModifier += 5;
+
+            if (board.Hand.Any(x => x.Template.Id == Card.Cards.BRM_002)) //Flamewaker in hand
+                GlobalValueModifier -= 5;
+
             switch (spell.Template.Id)
             {
 
@@ -955,14 +980,21 @@ namespace SmartBot.Plugins.API
                     GlobalValueModifier -= 9;
                     break;
 
-                case Card.Cards.EX1_277: //Arcane Missiles
-                    GlobalValueModifier -= 3;
-                    break;
-
                 case Card.Cards.EX1_408: //Mortal Strike
                     GlobalValueModifier -= 16;
                     if (target != board.HeroEnemy || target.IsTaunt == false)
                         GlobalValueModifier -= 5;
+                    break;
+
+                case Card.Cards.EX1_277: //Arcane Missiles
+                    GlobalValueModifier -= 6;
+                    GlobalValueModifier += board.MinionEnemy.FindAll(x => x.CurrentHealth <= 1).Count * 3;
+                    break;
+
+                case Card.Cards.CS2_027: //Mirror Image
+                    if (!board.MinionFriend.Any(x => x.Template.Id == Card.Cards.EX1_559)) //Is AA or FW on board?
+                        if (!board.MinionFriend.Any(x => x.Template.Id == Card.Cards.BRM_002))
+                            GlobalValueModifier -= 10;
                     break;
 
                 case Card.Cards.GVG_003: //Unstable Portal
@@ -1225,7 +1257,8 @@ namespace SmartBot.Plugins.API
             if (board.MinionFriend.Count(x => x.Template.Id == Card.Cards.AT_076) >= 1)
                 GlobalValueModifier += 5;
 
-            if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior || ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechMage)
+            if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechWarrior || ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MechMage
+                || ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.TempoMage)
                 GlobalValueModifier += 1;
 
             if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MidHunter)
@@ -1351,7 +1384,8 @@ namespace SmartBot.Plugins.API
                 PriestControl,
                 Handlock,
                 FreezeMage,
-                MidHunter
+                MidHunter,
+                TempoMage
             }
 
             private static bool _archetypeSetup;
@@ -1393,6 +1427,8 @@ namespace SmartBot.Plugins.API
                     _archetypeFriendly = Archetype.MidHunter;
                 else if (isWorgenOtk(board))
                     _archetypeFriendly = Archetype.WorgenOtk;
+                else if (isTempoMage(board))
+                    _archetypeFriendly = Archetype.TempoMage;
 
 
                 if (isHandLock(board))
@@ -1408,6 +1444,16 @@ namespace SmartBot.Plugins.API
             {
                 if (board.FriendClass == Card.CClass.PALADIN &&
                     board.Deck.Count(x => CardTemplate.LoadFromId(x).Id == Card.Cards.AT_079) >= 1)
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            public static bool isTempoMage(Board board)
+            {
+                if (board.FriendClass == Card.CClass.MAGE &&
+                    board.Deck.Count(x => CardTemplate.LoadFromId(x).Id == Card.Cards.BRM_002) >= 1)
                 {
                     return true;
                 }
