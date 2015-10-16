@@ -476,6 +476,11 @@ namespace SmartBot.Plugins.API
                         if (card.IsSilenced == false)
                             value += 15;
                         break;
+
+                    case Card.Cards.AT_127: //Nexus-Champion Saraad
+                        if (card.IsSilenced == false)
+                            value += 10;
+                        break;
                 }
             }
 
@@ -1096,6 +1101,10 @@ namespace SmartBot.Plugins.API
                     {
                         GlobalValueModifier -= 10;
                     }
+                    if (board.Hand.Count == 1)
+                    {
+                        GlobalValueModifier += 10;
+                    }
                     break;
 
                 case Card.Cards.EX1_538: //Unleash the Hounds
@@ -1283,8 +1292,11 @@ namespace SmartBot.Plugins.API
 
         public void OnProcessAction(Action a, Board board)
         {
-            float moveVal = board.TrapMgr.GetSecretModifier(a, board, true);
-            GlobalValueModifier += (int) moveVal;
+            if (board.EnemyClass == Card.CClass.HUNTER)
+            {
+                float moveVal = board.TrapMgr.GetSecretModifier(a, board, true);
+                GlobalValueModifier += (int)moveVal;
+            }
         }
 
         public override RemoteProfile DeepClone()
