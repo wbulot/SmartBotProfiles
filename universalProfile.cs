@@ -74,7 +74,7 @@ namespace SmartBot.Plugins.API
             else if(ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.TempoMage)
             {
                 //Debug("TempoMage");
-                FriendCardDrawValue = 5;
+                FriendCardDrawValue = 4;
                 EnemyCardDrawValue = 6;
                 HeroEnemyHealthValue = 3;
                 HeroFriendHealthValue = 2;
@@ -670,8 +670,6 @@ namespace SmartBot.Plugins.API
                     
                     if (board.MinionEnemy.Count == 0) //Avoid play abusive if empty enemy board (use it for trade)
                         GlobalValueModifier -= 4;
-                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.MidHunter)
-                    {
                         if (target != null)
                         {
                             if (target.IsFriend == false || target.CanAttack == false)
@@ -679,7 +677,6 @@ namespace SmartBot.Plugins.API
                                 GlobalValueModifier -= 18;
                             }
                         }
-                    }
                     break;
 
                 case Card.Cards.FP1_002: //Haunted Creeper
@@ -710,7 +707,7 @@ namespace SmartBot.Plugins.API
                         if (board.EnemyClass == Card.CClass.HUNTER) //Inscrease value of owl against hunter
                         {
                             if (target != null && target.IsFriend == false)
-                                GlobalValueModifier += 10;
+                                GlobalValueModifier += 7;
 
                             if (target != null && target.Template.Id == Card.Cards.FP1_004)
                                 //Inscrease value of owl against mad scientitst
@@ -845,8 +842,19 @@ namespace SmartBot.Plugins.API
                 GlobalValueModifier -= 10;
             }
 
-            if (IsFirstMove(board))
-                OnFirstAction(board, minion, target, true, false, false);
+            if (board.SecretEnemy)
+            {
+                if (Secret.isTestedExploTrap(board) == false)
+                {
+                    if (minion.CurrentHealth <= 2)
+                    {
+                        GlobalValueModifier -= 20;
+                    }
+                }
+            }
+
+            //if (IsFirstMove(board))
+            //    OnFirstAction(board, minion, target, true, false, false);
         }
 
         public override void OnMinionDeath(Board board, Card minion)
@@ -1388,8 +1396,8 @@ namespace SmartBot.Plugins.API
                 }
             }
 
-            if (IsFirstMove(board))
-                OnFirstAction(board, spell, target, true, false, false);
+            //if (IsFirstMove(board))
+            //    OnFirstAction(board, spell, target, true, false, false);
         }
 
         public override void OnCastWeapon(Board board, Card weapon, Card target)
@@ -1420,12 +1428,55 @@ namespace SmartBot.Plugins.API
                     
             }
 
-            if (IsFirstMove(board))
-                OnFirstAction(board, weapon, target, false, false, false);
+            //if (IsFirstMove(board))
+            //    OnFirstAction(board, weapon, target, false, false, false);
         }
 
         public override void OnAttack(Board board, Card attacker, Card target)
         {
+
+            //Debug(board.SecretEnemyCount.ToString());
+            //if (board.IsOwnTurn && board.TrapMgr.TriggeredHeroWithMinion == true)
+            //{
+            //    Debug("Le secret n'est pas explosive ou freeze");
+            //}
+            //else if (board.IsOwnTurn && board.TrapMgr.TriggeredHeroWithMinion == false)
+            //{
+            //    Debug("Le secret peut etre explosive ou freeze");
+            //}
+            if (board.SecretEnemy)
+            {
+                if (Secret.isTestedFreezeTrap(board) == false)
+                {
+                    //GlobalValueModifier -= attacker.CurrentAtk;
+                    if (board.ActionsStack.Count == 1)
+                    {
+                        if (board.GetWorstMinionCanAttack().Id == attacker.Id)
+                        {
+                            GlobalValueModifier += 4;
+                        }
+                    }
+                }
+
+                if (Secret.isTestedExploTrap(board) == false)
+                {
+                    if (target == board.HeroEnemy)
+                    {
+
+                        GlobalValueModifier -= board.MinionFriend.Count(x => x.CurrentHealth <= 2) * 1;
+
+                        if (board.ActionsStack.Count == 1)
+                        {
+                            if (board.GetWorstMinionCanAttack().Id == attacker.Id)
+                            {
+                                GlobalValueModifier += 4;
+                            }
+                        }
+                        
+                    }
+
+                }
+            }
             
             if (board.WeaponFriend != null && attacker.Type == Card.CType.WEAPON)
             {
@@ -1472,8 +1523,8 @@ namespace SmartBot.Plugins.API
                 }
             }
 
-            if (IsFirstMove(board))
-                OnFirstAction(board, attacker, target, false, true, false);
+            //if (IsFirstMove(board))
+            //    OnFirstAction(board, attacker, target, false, true, false);
         }
 
         public override void OnCastAbility(Board board, Card ability, Card target)
@@ -1504,8 +1555,8 @@ namespace SmartBot.Plugins.API
             if (board.TurnCount == 1) //Avoid coin Heropower
                 GlobalValueModifier += 7;
 
-            if (IsFirstMove(board))
-                OnFirstAction(board, ability, target, false, false, true);
+            //if (IsFirstMove(board))
+            //    OnFirstAction(board, ability, target, false, false, true);
         }
 
         //public void OnProcessAction(Action a, Board board)
@@ -1812,11 +1863,29 @@ namespace SmartBot.Plugins.API
                     return true;
                 case Card.Cards.PART_007:
                     return true;
-
-                default:
-                    return false;
             }
             return false;
+        }
+
+        public static class Secret
+        {
+            public static bool isTestedFreezeTrap(Board board)
+            {
+                if ((board.TrapMgr.TriggeredHeroWithMinion == true || board.TrapMgr.TriggeredMinionWithMinion == true) && board.EnemyClass == Card.CClass.HUNTER)
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            public static bool isTestedExploTrap(Board board)
+            {
+                if (board.TrapMgr.TriggeredHeroWithMinion == true && board.EnemyClass == Card.CClass.HUNTER)
+                {
+                    return true;
+                }
+                return false;
+            }
         }
 
         public static class ArchetypeManager
