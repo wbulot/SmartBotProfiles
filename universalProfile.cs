@@ -654,10 +654,13 @@ namespace SmartBot.Plugins.API
                     break;
 
 		        case Card.Cards.EX1_603://Cruel Taskmaster
-                    GlobalValueModifier -= 8;
-                    if (board.Hand.FindAll(x => x.Template.Id == Card.Cards.EX1_603).Count == 2) //If we have 2 taskmaster, increase cast value
+                    if (ArchetypeManager.GetFriendlyArchetype(board) == ArchetypeManager.Archetype.WorgenOtk)
                     {
-                        GlobalValueModifier += 4;
+                        GlobalValueModifier -= 8;
+                        if (board.Hand.FindAll(x => x.Template.Id == Card.Cards.EX1_603).Count == 2) //If we have 2 taskmaster, increase cast value
+                        {
+                            GlobalValueModifier += 4;
+                        }
                     }
                     break;
 
